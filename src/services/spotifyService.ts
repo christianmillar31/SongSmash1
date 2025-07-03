@@ -386,22 +386,31 @@ class SpotifyService {
           // Translate difficulty levels to popularity parameters
           let minPopularity = 0;
           let maxPopularity = 100;
-          
+
           if (attemptFilters.difficulty && attemptFilters.difficulty.length > 0) {
-            const difficulties = Array.isArray(attemptFilters.difficulty) ? attemptFilters.difficulty : [];
-            if (difficulties.includes('easy')) {
-              minPopularity = 70;
-              maxPopularity = 100;
-            } else if (difficulties.includes('medium')) {
-              minPopularity = 40;
-              maxPopularity = 80;
-            } else if (difficulties.includes('hard')) {
-              minPopularity = 0;
-              maxPopularity = 50;
-            } else if (difficulties.includes('expert')) {
-              minPopularity = 0;
-              maxPopularity = 30;
-            }
+            const difficulties = Array.isArray(attemptFilters.difficulty)
+              ? attemptFilters.difficulty
+              : [];
+
+            // Map each difficulty to its [min, max] popularity range
+            const ranges: Array<[number, number]> = difficulties.map((diff) => {
+              switch (diff) {
+                case 'easy':
+                  return [70, 100];
+                case 'medium':
+                  return [40, 80];
+                case 'hard':
+                  return [0, 50];
+                case 'expert':
+                  return [0, 30];
+                default:
+                  return [0, 100];
+              }
+            });
+
+            // Combine all ranges into a single min/max
+            minPopularity = Math.min(...ranges.map((r) => r[0]));
+            maxPopularity = Math.max(...ranges.map((r) => r[1]));
           }
           
           // Build recommendations API URL
